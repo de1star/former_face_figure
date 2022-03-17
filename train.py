@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from utils.dataset import Dataset_F3
 from tqdm import tqdm
 import tensorboardX
+import random
 
 
 def main():
@@ -30,14 +31,16 @@ def test():
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 4
     steps = 0
+    max_len = 5000
     for e in range(epoch):
         for _, batch in tqdm(enumerate(dataloader)):
             steps += 1
             p1_vectors = batch['input'].to(torch.float32).cuda()
             p2_vectors = batch['output'].to(torch.float32).cuda()
-            if p1_vectors.shape[1] > 15000:
-                p1_vectors = p1_vectors[:, :15000, :]
-                p2_vectors = p2_vectors[:, :15000, :]
+            if p1_vectors.shape[1] > max_len:
+                start = random.randint(0, p1_vectors.shape[1] - max_len)
+                p1_vectors = p1_vectors[:, start:start+max_len, :]
+                p2_vectors = p2_vectors[:, start:start+max_len, :]
             output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
             loss = loss_func(output, p2_vectors)
             loss = loss / accumulation_steps

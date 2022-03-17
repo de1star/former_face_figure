@@ -187,6 +187,7 @@ class AttentionStack(torch.nn.Module):
 class MyModel(torch.nn.Module):
     def __init__(self, config):
         super(MyModel, self).__init__()
+        self.max_len = 5000
         self.position_encoder = PositionEmbeddings(config)
         self.fc1 = torch.nn.Linear(165, config.d_model)
         self.encoder = AttentionStack(config, is_decoder=False)
@@ -209,3 +210,21 @@ class MyModel(torch.nn.Module):
         # model_output = self.normal_flow(cross_attn_embeddings)
         model_output = self.fc3(cross_attn_embeddings)
         return model_output
+
+    def generate(self, inputs):
+        with torch.no_grad():
+            seq_len = inputs.shape[1]
+            for i in range(seq_len):
+                cur_p1_inputs = inputs[:, :i + 1, :]
+                if i == 0:
+                    cur_p2_output = self.forward(p1_vectors=cur_p1_inputs,
+                                                 p2_vectors=cur_p1_inputs)
+                    cur_p2_outputs = cur_p2_output
+                else:
+                    if cur_p1_inputs.shape[1] > self.max_len:
+                        cur_p1_inputs = cur_p1_inputs[:, 1:, :]
+                        cur_p2_outputs = cur_p2_outputs[:, 1:, :]
+                    cur_p2_output = self.forward(p1_vectors=cur_p1_inputs,
+                                                 p2_vectors=cur_p2_outputs)
+                    cur_p2_outputs = torch.cat((cur_p2_outputs, cur_p2_output), 1)
+        return cur_p2_outputs
