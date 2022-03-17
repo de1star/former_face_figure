@@ -5,6 +5,7 @@ from utils.custom_model import MyModel, MyConfig
 from torch.utils.data import DataLoader
 from utils.dataset import Dataset_F3
 from tqdm import tqdm
+import tensorboardX
 
 
 def main():
@@ -26,9 +27,12 @@ def test():
     # learning rate scheduler, I did not warm up the model.
     scheduler = CosineAnnealingLR(optimizer, T_max=7, eta_min=1e-5)
     loss_func = torch.nn.MSELoss()
+    writer = tensorboardX.SummaryWriter()
     accumulation_steps = 4
+    steps = 0
     for e in range(epoch):
         for _, batch in tqdm(enumerate(dataloader)):
+            steps += 1
             p1_vectors = batch['input'].to(torch.float32).cuda()
             p2_vectors = batch['output'].to(torch.float32).cuda()
             output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
@@ -39,6 +43,7 @@ def test():
                 optimizer.step()
                 optimizer.zero_grad()
                 print(loss)
+                writer.add_scalar("loss", loss * accumulation_steps, steps)
         optimizer.step()
         optimizer.zero_grad()
         torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
