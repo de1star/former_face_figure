@@ -46,7 +46,9 @@ def test():
                 writer.add_scalar("loss", loss * accumulation_steps, steps)
         optimizer.step()
         optimizer.zero_grad()
+        scheduler.step()
         torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
+    writer.close()
 
 
 if __name__ == '__main__':
