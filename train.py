@@ -35,6 +35,9 @@ def test():
             steps += 1
             p1_vectors = batch['input'].to(torch.float32).cuda()
             p2_vectors = batch['output'].to(torch.float32).cuda()
+            if p1_vectors.shape[1] > 20000:
+                p1_vectors = p1_vectors[:, :20000, :]
+                p2_vectors = p2_vectors[:, :20000, :]
             output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
             loss = loss_func(output, p2_vectors)
             loss = loss / accumulation_steps
