@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from transformers import LongformerModel
 # config: num_layers, d_model, d_probability, layer_norm_ep, dropout_rate, max_position_embeddings, d_ff, d_kv, num_heads
 
 
