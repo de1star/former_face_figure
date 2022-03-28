@@ -3,19 +3,31 @@ from tqdm import tqdm
 import numpy as np
 # config: num_layers, d_model, d_probability, layer_norm_ep, dropout_rate, max_position_embeddings, d_ff, d_kv, num_heads
 
-
+# config 1
 class MyConfig():
     def __init__(self):
-        self.num_layers = 4
+        self.num_layers = 8
         self.d_model = 256
-        self.d_probability = 256
+        self.d_probability = 128
         self.layer_norm_ep = 1e-5
         self.dropout_rate = 0.02
         self.max_position_embeddings = 30000
         self.d_ff = 512
-        self.d_kv = 48
-        self.num_heads = 4
+        self.d_kv = 256
+        self.num_heads = 8
 
+# # config 2
+# class MyConfig():
+#     def __init__(self):
+#         self.num_layers = 4
+#         self.d_model = 256
+#         self.d_probability = 256
+#         self.layer_norm_ep = 1e-5
+#         self.dropout_rate = 0.02
+#         self.max_position_embeddings = 30000
+#         self.d_ff = 512
+#         self.d_kv = 48
+#         self.num_heads = 4
 
 # class MyConfig():
 #     def __init__(self):

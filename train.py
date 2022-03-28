@@ -73,7 +73,7 @@ def test():
             valid_loss += loss / valid_dataset_lenth
         valid_loss = valid_loss * (max_len // test_max_len)
         print(f'valid_loss: {valid_loss}')
-        writer.add_scalar("valid_loss", valid_loss)
+        writer.add_scalar("valid_loss", valid_loss, steps)
     writer.close()
 
 
