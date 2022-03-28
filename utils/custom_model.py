@@ -1,4 +1,5 @@
 import torch
+from tqdm import tqdm
 import numpy as np
 # config: num_layers, d_model, d_probability, layer_norm_ep, dropout_rate, max_position_embeddings, d_ff, d_kv, num_heads
 
@@ -14,6 +15,19 @@ class MyConfig():
         self.d_ff = 512
         self.d_kv = 48
         self.num_heads = 4
+
+
+# class MyConfig():
+#     def __init__(self):
+#         self.num_layers = 1
+#         self.d_model = 64
+#         self.d_probability = 64
+#         self.layer_norm_ep = 1e-5
+#         self.dropout_rate = 0.02
+#         self.max_position_embeddings = 30000
+#         self.d_ff = 128
+#         self.d_kv = 48
+#         self.num_heads = 2
 
 
 class Attention(torch.nn.Module):
@@ -187,7 +201,7 @@ class AttentionStack(torch.nn.Module):
 class MyModel(torch.nn.Module):
     def __init__(self, config):
         super(MyModel, self).__init__()
-        self.max_len = 5000
+        self.max_len = 800
         self.position_encoder = PositionEmbeddings(config)
         self.fc1 = torch.nn.Linear(165, config.d_model)
         self.encoder = AttentionStack(config, is_decoder=False)
@@ -197,6 +211,18 @@ class MyModel(torch.nn.Module):
         self.fc3 = torch.nn.Linear(config.d_probability, 165)
 
     def forward(self, p1_vectors, p2_vectors):
+        seq_len = p1_vectors.shape[1]
+        if seq_len <= self.max_len:
+            model_output = self.direct_forward(p1_vectors, p2_vectors)
+        else:
+            model_output1 = self.direct_forward(p1_vectors[:, :self.max_len, :], p2_vectors[:, :self.max_len, :])
+            model_output2 = self.window_forward(p1_vectors[:, seq_len - self.max_len - 2:, :],
+                                                p2_vectors[:, seq_len - self.max_len - 2:, :],
+                                                seq_len - self.max_len)
+            model_output = torch.cat((model_output1, model_output2), 1)
+        return model_output
+
+    def direct_forward(self, p1_vectors, p2_vectors):
         seq_len = p1_vectors.shape[1]
         p1_vectors = self.fc1(p1_vectors)#.to(torch.float32))
         p2_vectors = self.fc1(p2_vectors)#.to(torch.float32))
@@ -211,20 +237,38 @@ class MyModel(torch.nn.Module):
         model_output = self.fc3(cross_attn_embeddings)
         return model_output
 
+    def window_forward(self, p1_vectors, p2_vectors, times):
+        seq_len = p1_vectors.shape[1]
+        cur_p2_outputs = None
+        for i in tqdm(range(times)):
+            cur_p1_inputs = p1_vectors[:, i:self.max_len + i + 1, :]
+            cur_p2_inputs = p2_vectors[:, i:self.max_len + i + 1, :]
+            cur_p2_output = self.forward(p1_vectors=cur_p1_inputs,
+                                         p2_vectors=cur_p2_inputs)
+            if i == 0:
+                cur_p2_outputs = cur_p2_output[:, -1:, :]
+            else:
+                cur_p2_outputs = torch.cat((cur_p2_outputs, cur_p2_output[:, -1:, :]), 1)
+        model_output = cur_p2_outputs
+        return model_output
+
     def generate(self, inputs):
+        model_output = None
         with torch.no_grad():
             seq_len = inputs.shape[1]
-            for i in range(seq_len):
+            for i in tqdm(range(seq_len)):
                 cur_p1_inputs = inputs[:, :i + 1, :]
                 if i == 0:
-                    cur_p2_output = self.forward(p1_vectors=cur_p1_inputs,
-                                                 p2_vectors=cur_p1_inputs)
-                    cur_p2_outputs = cur_p2_output
+                    cur_p2_output = self.direct_forward(p1_vectors=cur_p1_inputs,
+                                                        p2_vectors=cur_p1_inputs)
+                    model_output = torch.cat((cur_p2_output, cur_p2_output), 1)
                 else:
                     if cur_p1_inputs.shape[1] > self.max_len:
-                        cur_p1_inputs = cur_p1_inputs[:, 1:, :]
-                        cur_p2_outputs = cur_p2_outputs[:, 1:, :]
-                    cur_p2_output = self.forward(p1_vectors=cur_p1_inputs,
-                                                 p2_vectors=cur_p2_outputs)
-                    cur_p2_outputs = torch.cat((cur_p2_outputs, cur_p2_output), 1)
-        return cur_p2_outputs
+                        cur_p1_inputs = cur_p1_inputs[:, i+1-self.max_len:i+1, :]
+                        cur_p2_inputs = model_output[:, i+1-self.max_len:i+1, :]
+                    else:
+                        cur_p2_inputs = model_output
+                    cur_p2_output = self.direct_forward(p1_vectors=cur_p1_inputs,
+                                                        p2_vectors=cur_p2_inputs)
+                    model_output = torch.cat((model_output, cur_p2_output[:, -1:, :]), 1)
+        return model_output[:, 1:, :]
