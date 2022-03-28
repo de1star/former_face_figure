@@ -6,7 +6,7 @@ import numpy as np
 # config 1
 class MyConfig():
     def __init__(self):
-        self.num_layers = 8
+        self.num_layers = 10
         self.d_model = 256
         self.d_probability = 128
         self.layer_norm_ep = 1e-5
@@ -213,7 +213,7 @@ class AttentionStack(torch.nn.Module):
 class MyModel(torch.nn.Module):
     def __init__(self, config):
         super(MyModel, self).__init__()
-        self.max_len = 500
+        self.max_len = 800
         self.position_encoder = PositionEmbeddings(config)
         self.fc1 = torch.nn.Linear(165, config.d_model)
         self.encoder = AttentionStack(config, is_decoder=False)
