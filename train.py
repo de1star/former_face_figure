@@ -33,14 +33,15 @@ def test():
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 8
     steps = 0
-    max_len = 500
-    test_max_len = 800
+    max_len = 800
+    test_max_len = 5000
     for e in range(epoch):
         for _, batch in tqdm(enumerate(dataloader)):
             steps += 1
             p1_vectors = batch['input'].to(torch.float32).cuda()
             p2_vectors = batch['output'].to(torch.float32).cuda()
             if p1_vectors.shape[1] > max_len:
+                random.seed(e)
                 start = random.randint(0, p1_vectors.shape[1] - max_len)
                 p1_vectors = p1_vectors[:, start:start+max_len, :]
                 p2_vectors = p2_vectors[:, start:start+max_len, :]
@@ -59,20 +60,20 @@ def test():
         writer.add_scalar("loss", loss * accumulation_steps, steps)
         scheduler.step()
         torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
-        valid_dataset_lenth = len(valid_dataset)
-        valid_loss = 0
-        for _, batch in enumerate(valid_dataloader):
-            p1_vectors = batch['input'].to(torch.float32).cuda()
-            p2_vectors = batch['output'].to(torch.float32).cuda()
-            if p1_vectors.shape[1] > test_max_len:
-                start = random.randint(0, p1_vectors.shape[1] - test_max_len)
-                p1_vectors = p1_vectors[:, start:start + test_max_len, :]
-                p2_vectors = p2_vectors[:, start:start + test_max_len, :]
-            output = model.generate(p1_vectors)
-            loss = loss_func(output, p2_vectors)
-            valid_loss += loss / valid_dataset_lenth
-        print(f'valid_loss: {valid_loss}')
-        writer.add_scalar("valid_loss", valid_loss, steps)
+        if (e+1) % 10 == 0:
+            valid_dataset_lenth = len(valid_dataset)
+            valid_loss = 0
+            for _, batch in enumerate(valid_dataloader):
+                p1_vectors = batch['input'].to(torch.float32).cuda()
+                p2_vectors = batch['output'].to(torch.float32).cuda()
+                if p1_vectors.shape[1] > test_max_len:
+                    p1_vectors = p1_vectors[:, :test_max_len, :]
+                    p2_vectors = p2_vectors[:, :test_max_len, :]
+                output = model.generate(p1_vectors)
+                loss = loss_func(output, p2_vectors)
+                valid_loss += loss / valid_dataset_lenth
+            print(f'valid_loss: {valid_loss}')
+            writer.add_scalar("valid_loss", valid_loss, steps)
     writer.close()
 
 
