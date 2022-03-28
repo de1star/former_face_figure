@@ -24,7 +24,7 @@ def test():
     valid_dataloader = DataLoader(valid_dataset, batch_size=1)
     config = MyConfig()
     model = MyModel(config).cuda()
-    epoch = 200
+    epoch = 300
     # initialize the optimizer, I used AdamW here.
     optimizer = AdamW(model.parameters(), lr=2e-4, betas=(0.9, 0.98))
     # learning rate scheduler, I did not warm up the model.
