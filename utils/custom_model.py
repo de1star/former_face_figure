@@ -213,7 +213,7 @@ class AttentionStack(torch.nn.Module):
 class MyModel(torch.nn.Module):
     def __init__(self, config):
         super(MyModel, self).__init__()
-        self.max_len = 5000
+        self.max_len = 500
         self.position_encoder = PositionEmbeddings(config)
         self.fc1 = torch.nn.Linear(165, config.d_model)
         self.encoder = AttentionStack(config, is_decoder=False)
