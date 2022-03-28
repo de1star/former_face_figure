@@ -26,7 +26,7 @@ def test():
     model = MyModel(config).cuda()
     epoch = 50
     # initialize the optimizer, I used AdamW here.
-    optimizer = AdamW(model.parameters(), lr=2e-4, betas=(0.9, 0.98))
+    optimizer = AdamW(model.parameters(), lr=2e-5, betas=(0.9, 0.98))
     # learning rate scheduler, I did not warm up the model.
     scheduler = CosineAnnealingLR(optimizer, T_max=49, eta_min=1e-6)
     loss_func = torch.nn.MSELoss()
@@ -34,7 +34,7 @@ def test():
     accumulation_steps = 8
     steps = 0
     max_len = 800
-    test_max_len = 5000
+    test_max_len = 800
     for e in range(epoch):
         for _, batch in tqdm(enumerate(dataloader)):
             steps += 1
