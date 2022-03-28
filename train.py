@@ -46,8 +46,12 @@ def test():
                 p1_vectors = p1_vectors[:, start:start+max_len, :]
                 p2_vectors = p2_vectors[:, start:start+max_len, :]
             output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
-            loss = loss_func(output, p2_vectors)
-            loss = loss / accumulation_steps
+            # loss = loss_func(output, p2_vectors)
+            loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
+            loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
+            loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
+            loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
+            loss = (5*loss1+3*loss2+loss3+loss4) / accumulation_steps
             loss.backward()
             if (_ + 1) % accumulation_steps == 0:
                 optimizer.step()
