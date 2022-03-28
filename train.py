@@ -36,12 +36,12 @@ def test():
     max_len = 800
     test_max_len = 800
     for e in range(epoch):
+        random.seed(e)
         for _, batch in tqdm(enumerate(dataloader)):
             steps += 1
             p1_vectors = batch['input'].to(torch.float32).cuda()
             p2_vectors = batch['output'].to(torch.float32).cuda()
             if p1_vectors.shape[1] > max_len:
-                random.seed(e)
                 start = random.randint(0, p1_vectors.shape[1] - max_len)
                 p1_vectors = p1_vectors[:, start:start+max_len, :]
                 p2_vectors = p2_vectors[:, start:start+max_len, :]
