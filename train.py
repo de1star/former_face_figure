@@ -33,7 +33,8 @@ def test():
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 8
     steps = 0
-    max_len = 50
+    max_len = 5000
+    test_max_len = 6000
     for e in range(epoch):
         for _, batch in tqdm(enumerate(dataloader)):
             steps += 1
@@ -47,7 +48,6 @@ def test():
             loss = loss_func(output, p2_vectors)
             loss = loss / accumulation_steps
             loss.backward()
-            break
             if (_ + 1) % accumulation_steps == 0:
                 optimizer.step()
                 optimizer.zero_grad()
@@ -64,10 +64,10 @@ def test():
         for _, batch in enumerate(valid_dataloader):
             p1_vectors = batch['input'].to(torch.float32).cuda()
             p2_vectors = batch['output'].to(torch.float32).cuda()
-            if p1_vectors.shape[1] > max_len:
-                start = random.randint(0, p1_vectors.shape[1] - max_len)
-                p1_vectors = p1_vectors[:, start:start + max_len, :]
-                p2_vectors = p2_vectors[:, start:start + max_len, :]
+            if p1_vectors.shape[1] > test_max_len:
+                start = random.randint(0, p1_vectors.shape[1] - test_max_len)
+                p1_vectors = p1_vectors[:, start:start + test_max_len, :]
+                p2_vectors = p2_vectors[:, start:start + test_max_len, :]
             output = model.generate(p1_vectors)
             loss = loss_func(output, p2_vectors)
             valid_loss += loss / valid_dataset_lenth
