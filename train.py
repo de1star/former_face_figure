@@ -74,7 +74,11 @@ def test():
                     p1_vectors = p1_vectors[:, :test_max_len, :]
                     p2_vectors = p2_vectors[:, :test_max_len, :]
                 output = model.generate(p1_vectors)
-                loss = loss_func(output, p2_vectors)
+                loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
+                loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
+                loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
+                loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
+                loss = (5 * loss1 + 3 * loss2 + loss3 + loss4)
                 valid_loss += loss / valid_dataset_lenth
             print(f'valid_loss: {valid_loss}')
             writer.add_scalar("valid_loss", valid_loss, steps)
