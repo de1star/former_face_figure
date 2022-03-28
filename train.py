@@ -34,7 +34,7 @@ def test():
     accumulation_steps = 8
     steps = 0
     max_len = 5000
-    test_max_len = 300
+    test_max_len = 500
     for e in range(epoch):
         for _, batch in tqdm(enumerate(dataloader)):
             steps += 1
@@ -71,6 +71,7 @@ def test():
             output = model.generate(p1_vectors)
             loss = loss_func(output, p2_vectors)
             valid_loss += loss / valid_dataset_lenth
+        valid_loss = valid_loss * (max_len // test_max_len)
         print(f'valid_loss: {valid_loss}')
         writer.add_scalar("valid_loss", valid_loss)
     writer.close()
