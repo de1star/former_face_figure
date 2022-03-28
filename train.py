@@ -33,7 +33,7 @@ def test():
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 8
     steps = 0
-    max_len = 5000
+    max_len = 500
     test_max_len = 500
     for e in range(epoch):
         for _, batch in tqdm(enumerate(dataloader)):
