@@ -24,11 +24,11 @@ def test():
     valid_dataloader = DataLoader(valid_dataset, batch_size=1)
     config = MyConfig()
     model = MyModel(config).cuda()
-    epoch = 50
+    epoch = 100
     # initialize the optimizer, I used AdamW here.
     optimizer = AdamW(model.parameters(), lr=2e-5, betas=(0.9, 0.98))
     # learning rate scheduler, I did not warm up the model.
-    scheduler = CosineAnnealingLR(optimizer, T_max=49, eta_min=1e-6)
+    scheduler = CosineAnnealingLR(optimizer, T_max=99, eta_min=1e-7)
     loss_func = torch.nn.MSELoss()
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 8
