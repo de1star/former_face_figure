@@ -3,31 +3,31 @@ from tqdm import tqdm
 import numpy as np
 # config: num_layers, d_model, d_probability, layer_norm_ep, dropout_rate, max_position_embeddings, d_ff, d_kv, num_heads
 
-#
-# class MyConfig():
-#     def __init__(self):
-#         self.num_layers = 4
-#         self.d_model = 256
-#         self.d_probability = 256
-#         self.layer_norm_ep = 1e-5
-#         self.dropout_rate = 0.02
-#         self.max_position_embeddings = 30000
-#         self.d_ff = 512
-#         self.d_kv = 48
-#         self.num_heads = 4
-
 
 class MyConfig():
     def __init__(self):
-        self.num_layers = 1
-        self.d_model = 64
-        self.d_probability = 64
+        self.num_layers = 4
+        self.d_model = 256
+        self.d_probability = 256
         self.layer_norm_ep = 1e-5
         self.dropout_rate = 0.02
         self.max_position_embeddings = 30000
-        self.d_ff = 128
+        self.d_ff = 512
         self.d_kv = 48
-        self.num_heads = 2
+        self.num_heads = 4
+
+
+# class MyConfig():
+#     def __init__(self):
+#         self.num_layers = 1
+#         self.d_model = 64
+#         self.d_probability = 64
+#         self.layer_norm_ep = 1e-5
+#         self.dropout_rate = 0.02
+#         self.max_position_embeddings = 30000
+#         self.d_ff = 128
+#         self.d_kv = 48
+#         self.num_heads = 2
 
 
 class Attention(torch.nn.Module):
