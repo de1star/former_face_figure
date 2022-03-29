@@ -6,7 +6,7 @@ import numpy as np
 # config 1
 class MyConfig():
     def __init__(self):
-        self.num_layers = 10
+        self.num_layers = 16
         self.d_model = 256
         self.d_probability = 128
         self.layer_norm_ep = 1e-5
