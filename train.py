@@ -65,7 +65,6 @@ def test():
         print(f'train_loss: {loss * accumulation_steps}')
         writer.add_scalar("loss", loss * accumulation_steps, steps)
         scheduler.step()
-        torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
         if (e+1) % 10 == 0:
             valid_dataset_lenth = len(valid_dataset)
             valid_loss = 0
@@ -84,6 +83,7 @@ def test():
                 valid_loss += loss / valid_dataset_lenth
             print(f'valid_loss: {valid_loss}')
             writer.add_scalar("valid_loss", valid_loss, steps)
+    torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
     writer.add_scalar("memory_usage", max_gpu_usage, model.max_len)
     writer.close()
 
