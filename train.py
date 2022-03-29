@@ -35,6 +35,7 @@ def test():
     steps = 0
     max_len = 200
     test_max_len = 800
+    max_gpu_usage = 0
     for e in range(epoch):
         random.seed(e)
         for _, batch in tqdm(enumerate(dataloader)):
@@ -52,6 +53,7 @@ def test():
             loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
             loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
             loss = (5*loss1+3*loss2+loss3+loss4) / accumulation_steps
+            max_gpu_usage = max(max_gpu_usage, torch.cuda.memory_allocated())
             loss.backward()
             if (_ + 1) % accumulation_steps == 0:
                 optimizer.step()
@@ -82,6 +84,7 @@ def test():
                 valid_loss += loss / valid_dataset_lenth
             print(f'valid_loss: {valid_loss}')
             writer.add_scalar("valid_loss", valid_loss, steps)
+    writer.add_scalar("memory_usage", max_gpu_usage, model.max_len)
     writer.close()
 
 
