@@ -24,7 +24,7 @@ def test():
     valid_dataloader = DataLoader(valid_dataset, batch_size=1)
     config = MyConfig()
     model = MyModel(config).cuda()
-    epoch = 200
+    epoch = 100
     # initialize the optimizer, I used AdamW here.
     optimizer = AdamW(model.parameters(), lr=2e-6, betas=(0.9, 0.98))
     # learning rate scheduler, I did not warm up the model.
@@ -33,7 +33,7 @@ def test():
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 8
     steps = 0
-    max_len = 200
+    max_len = 500
     test_max_len = 800
     max_gpu_usage = 0
     for e in range(epoch):
