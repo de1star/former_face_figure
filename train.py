@@ -33,7 +33,7 @@ def test():
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 8
     steps = 0
-    max_len = 500
+    max_len = 200
     test_max_len = 800
     for e in range(epoch):
         random.seed(e)
