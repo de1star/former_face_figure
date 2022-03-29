@@ -6,15 +6,15 @@ import numpy as np
 # config 1
 class MyConfig():
     def __init__(self):
-        self.num_layers = 16
-        self.d_model = 512
-        self.d_probability = 256
+        self.num_layers = 12
+        self.d_model = 768
+        self.d_probability = 512
         self.layer_norm_ep = 1e-5
         self.dropout_rate = 0.02
         self.max_position_embeddings = 30000
-        self.d_ff = 512
-        self.d_kv = 512
-        self.num_heads = 16
+        self.d_ff = 768
+        self.d_kv = 768
+        self.num_heads = 12
 
 # # config 2
 # class MyConfig():
