@@ -39,6 +39,7 @@ def test():
 
     memory_usage = 0
     for e in range(epoch):
+        print(f"epoch: {e}")
         random.seed(e)
         for _, batch in tqdm(enumerate(dataloader)):
             steps += 1
