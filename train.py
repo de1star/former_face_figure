@@ -34,7 +34,7 @@ def test():
     accumulation_steps = 8
     steps = 0
     max_len = 200
-    test_max_len = 800
+    test_max_len = 1000
     training_data_length = 8000
     memory_usage = 0
     for e in range(epoch):
