@@ -101,7 +101,7 @@ def test():
                 valid_loss += loss / valid_dataset_lenth
             print(f'valid_loss: {valid_loss}')
             writer.add_scalar("valid_loss", valid_loss, steps)
-    # torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
+    torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
     writer.add_scalar("memory_usage", memory_usage / 1.07e9, model.max_len)
     writer.close()
 
