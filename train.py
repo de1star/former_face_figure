@@ -13,7 +13,7 @@ def main():
     pass
 
 
-def test():
+def test(max_len):
     time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     model_output = 'mymodel'
     if not os.path.exists(model_output):
@@ -23,7 +23,6 @@ def test():
     valid_dataset = Dataset_F3('test')
     valid_dataloader = DataLoader(valid_dataset, batch_size=1)
     config = MyConfig()
-    max_len = 800
     test_max_len = max_len
     training_data_length = 1600
     model = MyModel(config, max_len).cuda()
@@ -108,4 +107,5 @@ def test():
 
 
 if __name__ == '__main__':
-    test()
+    for max_len in [800, 500, 200]:
+        test(max_len)
