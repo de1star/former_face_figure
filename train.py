@@ -25,7 +25,7 @@ def test():
     config = MyConfig()
     max_len = 800
     test_max_len = 1000
-    training_data_length = 4000
+    training_data_length = 1600
     model = MyModel(config, max_len).cuda()
     epoch = 101
     # initialize the optimizer, I used AdamW here.
