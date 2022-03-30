@@ -27,11 +27,11 @@ def test():
     test_max_len = 1000
     training_data_length = 4000
     model = MyModel(config, max_len).cuda()
-    epoch = 100
+    epoch = 101
     # initialize the optimizer, I used AdamW here.
     optimizer = AdamW(model.parameters(), lr=1e-6, betas=(0.9, 0.98))
     # learning rate scheduler, I did not warm up the model.
-    scheduler = CosineAnnealingLR(optimizer, T_max=99, eta_min=1e-8)
+    scheduler = CosineAnnealingLR(optimizer, T_max=100, eta_min=1e-8)
     loss_func = torch.nn.MSELoss()
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 8
@@ -83,7 +83,7 @@ def test():
         print(f'train_loss: {loss * accumulation_steps}')
         writer.add_scalar("loss", loss * accumulation_steps, steps)
         scheduler.step()
-        if (e+1) % 10 == 0:
+        if e % 10 == 0:
             valid_dataset_lenth = len(valid_dataset)
             valid_loss = 0
             for _, batch in enumerate(valid_dataloader):
