@@ -6,15 +6,15 @@ import numpy as np
 # config 1
 class MyConfig():
     def __init__(self):
-        self.num_layers = 16
-        self.d_model = 512
-        self.d_probability = 256
+        self.num_layers = 12
+        self.d_model = 768
+        self.d_probability = 512
         self.layer_norm_ep = 1e-5
         self.dropout_rate = 0.02
         self.max_position_embeddings = 30000
-        self.d_ff = 512
-        self.d_kv = 512
-        self.num_heads = 16
+        self.d_ff = 768
+        self.d_kv = 768
+        self.num_heads = 12
 
 # # config 2
 # class MyConfig():
@@ -265,7 +265,7 @@ class MyModel(torch.nn.Module):
         model_output = cur_p2_outputs
         return model_output
 
-    def generate(self, inputs):
+    def generate(self, inputs, p2_start):
         model_output = None
         with torch.no_grad():
             seq_len = inputs.shape[1]
@@ -273,7 +273,7 @@ class MyModel(torch.nn.Module):
                 cur_p1_inputs = inputs[:, :i + 1, :]
                 if i == 0:
                     cur_p2_output = self.direct_forward(p1_vectors=cur_p1_inputs,
-                                                        p2_vectors=cur_p1_inputs)
+                                                        p2_vectors=p2_start)
                     model_output = torch.cat((cur_p2_output, cur_p2_output), 1)
                 else:
                     if cur_p1_inputs.shape[1] > self.max_len:

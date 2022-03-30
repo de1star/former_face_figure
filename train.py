@@ -35,7 +35,6 @@ def test():
     steps = 0
     max_len = 800
     test_max_len = 800
-    max_gpu_usage = 0
     for e in range(epoch):
         random.seed(e)
         for _, batch in tqdm(enumerate(dataloader)):
@@ -53,7 +52,6 @@ def test():
             loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
             loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
             loss = (5*loss1+3*loss2+loss3+loss4) / accumulation_steps
-            max_gpu_usage = max(max_gpu_usage, torch.cuda.memory_allocated())
             loss.backward()
             if (_ + 1) % accumulation_steps == 0:
                 optimizer.step()
@@ -74,7 +72,7 @@ def test():
                 if p1_vectors.shape[1] > test_max_len:
                     p1_vectors = p1_vectors[:, :test_max_len, :]
                     p2_vectors = p2_vectors[:, :test_max_len, :]
-                output = model.generate(p1_vectors)
+                output = model.generate(p1_vectors, p2_vectors[:, 0, :])
                 loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
                 loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
                 loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
@@ -84,7 +82,7 @@ def test():
             print(f'valid_loss: {valid_loss}')
             writer.add_scalar("valid_loss", valid_loss, steps)
     torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
-    writer.add_scalar("memory_usage", max_gpu_usage, model.max_len)
+    writer.add_scalar("memory_usage", torch.cuda.max_memory_allocated() / 1.07e9, model.max_len)
     writer.close()
 
 
