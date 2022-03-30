@@ -59,6 +59,7 @@ def test(max_len):
                     loss = (5*loss1+3*loss2+loss3+loss4) / (training_data_length // max_len) / accumulation_steps
                     memory_usage = max(memory_usage, torch.cuda.memory_allocated())
                     loss.backward()
+                writer_loss = loss * (training_data_length // max_len) * accumulation_steps
             else:
                 start = random.randint(0, p1_vectors.shape[1] - max_len)
                 long_p1_vectors = p1_vectors[:, start:start + max_len, :]
@@ -72,11 +73,12 @@ def test(max_len):
                 loss = (5*loss1+3*loss2+loss3+loss4) / accumulation_steps
                 memory_usage = max(memory_usage, torch.cuda.memory_allocated())
                 loss.backward()
+                writer_loss = loss * accumulation_steps
             if (_ + 1) % accumulation_steps == 0:
                 optimizer.step()
                 optimizer.zero_grad()
-                print(f'train_loss: {loss * accumulation_steps}')
-                writer.add_scalar("loss", loss * accumulation_steps, steps)
+                print(f'train_loss: {writer_loss}')
+                writer.add_scalar("loss", writer_loss, steps)
         optimizer.step()
         optimizer.zero_grad()
         print(f'train_loss: {loss * accumulation_steps}')
