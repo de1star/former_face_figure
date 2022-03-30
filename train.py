@@ -35,6 +35,8 @@ def test():
     steps = 0
     max_len = 200
     test_max_len = 800
+    training_data_length = 8000
+    memory_usage = 0
     for e in range(epoch):
         random.seed(e)
         for _, batch in tqdm(enumerate(dataloader)):
@@ -43,16 +45,29 @@ def test():
             p2_vectors = batch['output'].to(torch.float32).cuda()
             if p1_vectors.shape[1] > max_len:
                 start = random.randint(0, p1_vectors.shape[1] - max_len)
-                p1_vectors = p1_vectors[:, start:start+max_len, :]
-                p2_vectors = p2_vectors[:, start:start+max_len, :]
-            output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
-            # loss = loss_func(output, p2_vectors)
-            loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
-            loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
-            loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
-            loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
-            loss = (5*loss1+3*loss2+loss3+loss4) / accumulation_steps
-            loss.backward()
+                long_p1_vectors = p1_vectors[:, start:start+training_data_length, :]
+                long_p2_vectors = p2_vectors[:, start:start+training_data_length, :]
+                for i in range(training_data_length // max_len):
+                    p1_vectors = long_p1_vectors[:, i*max_len:(i+1)*max_len, :]
+                    p2_vectors = long_p2_vectors[:, i*max_len:(i+1)*max_len, :]
+                    output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
+                    loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
+                    loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
+                    loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
+                    loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
+                    loss = (5 * loss1 + 3 * loss2 + loss3 + loss4) / (training_data_length // max_len)
+                    memory_usage = max(memory_usage, torch.cuda.memory_allocated())
+                    loss.backward()
+            else:
+                output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
+                # loss = loss_func(output, p2_vectors)
+                loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
+                loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
+                loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
+                loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
+                loss = (5*loss1+3*loss2+loss3+loss4) / accumulation_steps
+                memory_usage = max(memory_usage, torch.cuda.memory_allocated())
+                loss.backward()
             if (_ + 1) % accumulation_steps == 0:
                 optimizer.step()
                 optimizer.zero_grad()
@@ -82,7 +97,7 @@ def test():
             print(f'valid_loss: {valid_loss}')
             writer.add_scalar("valid_loss", valid_loss, steps)
     # torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
-    writer.add_scalar("memory_usage", torch.cuda.max_memory_allocated() / 1.07e9, model.max_len)
+    writer.add_scalar("memory_usage", memory_usage / 1.07e9, model.max_len)
     writer.close()
 
 
