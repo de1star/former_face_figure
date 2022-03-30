@@ -24,7 +24,7 @@ def test():
     valid_dataloader = DataLoader(valid_dataset, batch_size=1)
     config = MyConfig()
     max_len = 800
-    test_max_len = 1000
+    test_max_len = max_len
     training_data_length = 1600
     model = MyModel(config, max_len).cuda()
     epoch = 101
@@ -92,7 +92,8 @@ def test():
                 if p1_vectors.shape[1] > test_max_len:
                     p1_vectors = p1_vectors[:, :test_max_len, :]
                     p2_vectors = p2_vectors[:, :test_max_len, :]
-                output = model.generate(p1_vectors, p2_vectors[:, :1, :])
+                # output = model.generate(p1_vectors, p2_vectors[:, :1, :])
+                output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
                 loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
                 loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
                 loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
