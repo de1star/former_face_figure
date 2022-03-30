@@ -16,31 +16,6 @@ class MyConfig():
         self.d_kv = 768
         self.num_heads = 12
 
-# # config 2
-# class MyConfig():
-#     def __init__(self):
-#         self.num_layers = 4
-#         self.d_model = 256
-#         self.d_probability = 256
-#         self.layer_norm_ep = 1e-5
-#         self.dropout_rate = 0.02
-#         self.max_position_embeddings = 30000
-#         self.d_ff = 512
-#         self.d_kv = 48
-#         self.num_heads = 4
-
-# class MyConfig():
-#     def __init__(self):
-#         self.num_layers = 1
-#         self.d_model = 64
-#         self.d_probability = 64
-#         self.layer_norm_ep = 1e-5
-#         self.dropout_rate = 0.02
-#         self.max_position_embeddings = 30000
-#         self.d_ff = 128
-#         self.d_kv = 48
-#         self.num_heads = 2
-
 
 class Attention(torch.nn.Module):
     def __init__(self, config, is_decoder):
