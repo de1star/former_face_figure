@@ -83,7 +83,7 @@ def test(max_len):
         writer.add_scalar("loss", loss * accumulation_steps, steps)
         scheduler.step()
         if e % 10 == 0:
-            with torch.no_grad:
+            with torch.no_grad():
                 valid_dataset_lenth = len(valid_dataset)
                 valid_loss = 0
                 for _, batch in enumerate(valid_dataloader):
