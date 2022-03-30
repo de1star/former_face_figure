@@ -48,7 +48,7 @@ def test():
                 start = random.randint(0, p1_vectors.shape[1] - max_len)
                 long_p1_vectors = p1_vectors[:, start:start+training_data_length, :]
                 long_p2_vectors = p2_vectors[:, start:start+training_data_length, :]
-                for i in range(training_data_length // max_len):
+                for i in tqdm(range(training_data_length // max_len)):
                     p1_vectors = long_p1_vectors[:, i*max_len:(i+1)*max_len, :]
                     p2_vectors = long_p2_vectors[:, i*max_len:(i+1)*max_len, :]
                     output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
