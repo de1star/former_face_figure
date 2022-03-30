@@ -46,7 +46,7 @@ def test():
             p1_vectors = batch['input'].to(torch.float32).cuda()
             p2_vectors = batch['output'].to(torch.float32).cuda()
             if p1_vectors.shape[1] > max_len:
-                start = random.randint(0, p1_vectors.shape[1] - max_len)
+                start = random.randint(0, p1_vectors.shape[1] - training_data_length)
                 long_p1_vectors = p1_vectors[:, start:start+training_data_length, :]
                 long_p2_vectors = p2_vectors[:, start:start+training_data_length, :]
                 for i in tqdm(range(training_data_length // max_len)):
