@@ -23,7 +23,10 @@ def test():
     valid_dataset = Dataset_F3('test')
     valid_dataloader = DataLoader(valid_dataset, batch_size=1)
     config = MyConfig()
-    model = MyModel(config).cuda()
+    max_len = 800
+    test_max_len = 1000
+    training_data_length = 8000
+    model = MyModel(config, max_len).cuda()
     epoch = 100
     # initialize the optimizer, I used AdamW here.
     optimizer = AdamW(model.parameters(), lr=1e-6, betas=(0.9, 0.98))
@@ -33,9 +36,7 @@ def test():
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 8
     steps = 0
-    max_len = 800
-    test_max_len = 1000
-    training_data_length = 8000
+
     memory_usage = 0
     for e in range(epoch):
         random.seed(e)
