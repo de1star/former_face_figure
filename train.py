@@ -25,7 +25,7 @@ def test():
     config = MyConfig()
     max_len = 800
     test_max_len = 1000
-    training_data_length = 8000
+    training_data_length = 4000
     model = MyModel(config, max_len).cuda()
     epoch = 100
     # initialize the optimizer, I used AdamW here.
@@ -45,7 +45,7 @@ def test():
             steps += 1
             p1_vectors = batch['input'].to(torch.float32).cuda()
             p2_vectors = batch['output'].to(torch.float32).cuda()
-            if p1_vectors.shape[1] > max_len:
+            if p1_vectors.shape[1] >= training_data_length:
                 start = random.randint(0, p1_vectors.shape[1] - training_data_length)
                 long_p1_vectors = p1_vectors[:, start:start+training_data_length, :]
                 long_p2_vectors = p2_vectors[:, start:start+training_data_length, :]
@@ -61,6 +61,9 @@ def test():
                     memory_usage = max(memory_usage, torch.cuda.memory_allocated())
                     loss.backward()
             else:
+                start = random.randint(0, p1_vectors.shape[1] - max_len)
+                long_p1_vectors = p1_vectors[:, start:start + max_len, :]
+                long_p2_vectors = p2_vectors[:, start:start + max_len, :]
                 output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
                 # loss = loss_func(output, p2_vectors)
                 loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
