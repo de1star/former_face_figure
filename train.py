@@ -12,12 +12,14 @@ import random
 
 def main():
     self_attention = torch.rand((8, 8))
-    self_attention = np.array(self_attention)
     cross_attention = torch.rand((8, 8))
     cross_attention = torch.tril(cross_attention)
     masks = torch.ones(cross_attention.size()).detach() * -99999
     masks = torch.triu(masks, diagonal=1)
-    cross_attention += masks
+    # self_attention += masks
+    softmax_self_attention = torch.nn.functional.softmax(self_attention, dim=-1)
+    self_attention = np.array(self_attention)
+    softmax_self_attention = np.array(softmax_self_attention)
     cross_attention = np.array(cross_attention)
     masks = np.array(masks)
     pass
@@ -122,3 +124,4 @@ def test(max_len):
 if __name__ == '__main__':
     for max_len in [800, 500, 300, 100, 50]:
         test(max_len)
+    # main()
