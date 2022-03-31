@@ -10,7 +10,7 @@ import tensorboardX
 import random
 
 
-def main():
+def test():
     self_attention = torch.rand((8, 8))
     cross_attention = torch.rand((8, 8))
     cross_attention = torch.tril(cross_attention)
@@ -25,7 +25,7 @@ def main():
     pass
 
 
-def test(max_len):
+def main(max_len):
     time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     model_output = 'mymodel'
     if not os.path.exists(model_output):
@@ -123,5 +123,5 @@ def test(max_len):
 
 if __name__ == '__main__':
     for max_len in [800, 500, 300, 100, 50]:
-        test(max_len)
+        main(max_len)
     # main()
