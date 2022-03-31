@@ -67,7 +67,9 @@ class Attention(torch.nn.Module):
         scores = torch.matmul(query_states, key_states.transpose(3, 2))
         # if self.is_decoder:
         #     scores = torch.tril(scores, diagonal=0)
-        scores = torch.tril(scores, diagonal=-999999)
+        masks = torch.ones(scores.size()).detach() * -99999
+        masks = torch.triu(masks, diagonal=1)
+        scores += masks
         attn_weights = torch.nn.functional.softmax(scores.float(), dim=-1).type_as(scores)
         attn_weights = self.dropout1(attn_weights)
         attn_output = unshape(torch.matmul(attn_weights, value_states))
