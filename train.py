@@ -110,5 +110,5 @@ def test(max_len):
 
 
 if __name__ == '__main__':
-    for max_len in [800, 500, 200]:
+    for max_len in [100, 50]:
         test(max_len)
