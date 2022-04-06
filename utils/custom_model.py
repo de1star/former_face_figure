@@ -6,15 +6,15 @@ import numpy as np
 # config 1
 class MyConfig():
     def __init__(self):
-        self.num_layers = 1
+        self.num_layers = 16
         self.d_model = 1024
         self.d_probability = 512
         self.layer_norm_ep = 1e-5
         self.dropout_rate = 0.02
-        self.max_position_embeddings = 1000
+        self.max_position_embeddings = 3000
         self.d_ff = 1024
         self.d_kv = 1024
-        self.num_heads = 1
+        self.num_heads = 16
 
 
 class Attention(torch.nn.Module):
@@ -206,8 +206,8 @@ class MyModel(torch.nn.Module):
             model_output = self.direct_forward(p1_vectors, p2_vectors)
         else:
             model_output1 = self.direct_forward(p1_vectors[:, :self.max_len, :], p2_vectors[:, :self.max_len, :])
-            model_output2 = self.window_forward(p1_vectors[:, seq_len - self.max_len - 2:, :],
-                                                p2_vectors[:, seq_len - self.max_len - 2:, :],
+            model_output2 = self.window_forward(p1_vectors[:, 1:, :],
+                                                p2_vectors[:, 1:, :],
                                                 seq_len - self.max_len)
             model_output = torch.cat((model_output1, model_output2), 1)
         return model_output
@@ -216,7 +216,7 @@ class MyModel(torch.nn.Module):
         seq_len = p1_vectors.shape[1]
         p1_vectors = self.fc1(p1_vectors)#.to(torch.float32))
         p2_vectors = self.fc1(p2_vectors)#.to(torch.float32))
-        position_ids = torch.tensor([i for i in range(seq_len)]).cuda()
+        position_ids = torch.tensor([i for i in range(seq_len)]).to(torch.int).cuda()
         position_embeddings = self.position_encoder(position_ids).unsqueeze(0)
         p1_vectors += position_embeddings
         p2_vectors += position_embeddings
@@ -231,8 +231,8 @@ class MyModel(torch.nn.Module):
         seq_len = p1_vectors.shape[1]
         cur_p2_outputs = None
         for i in tqdm(range(times)):
-            cur_p1_inputs = p1_vectors[:, i:self.max_len + i + 1, :]
-            cur_p2_inputs = p2_vectors[:, i:self.max_len + i + 1, :]
+            cur_p1_inputs = p1_vectors[:, i:self.max_len + i, :]
+            cur_p2_inputs = p2_vectors[:, i:self.max_len + i, :]
             cur_p2_output = self.forward(p1_vectors=cur_p1_inputs,
                                          p2_vectors=cur_p2_inputs)
             if i == 0:

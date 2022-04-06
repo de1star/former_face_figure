@@ -47,7 +47,6 @@ def main(max_len):
     accumulation_steps = 8
     steps = 0
     min_valid_loss = 99999
-    memory_usage = 0
     for e in range(epoch):
         print(f"epoch: {e}")
         random.seed(e)
@@ -66,7 +65,6 @@ def main(max_len):
                     loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
                     loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
                     loss = (5*loss1+3*loss2+loss3+loss4) / (time_len // max_len) / accumulation_steps
-                    memory_usage = max(memory_usage, torch.cuda.memory_allocated())
                     loss.backward()
                 writer_loss = loss * (time_len // max_len) * accumulation_steps
             else:
