@@ -66,7 +66,7 @@ def main(max_len):
                     loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
                     loss = (5*loss1+3*loss2+loss3+loss4) / (time_len // max_len) / accumulation_steps
                     loss.backward()
-                    if (_ + 1) % accumulation_steps == 0:
+                    if (i + 1) % accumulation_steps == 0:
                         optimizer.step()
                         optimizer.zero_grad()
                         writer_loss = loss * (time_len // max_len) * accumulation_steps
