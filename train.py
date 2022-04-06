@@ -44,7 +44,7 @@ def main(max_len):
     scheduler = CosineAnnealingLR(optimizer, T_max=100, eta_min=1e-8)
     loss_func = torch.nn.MSELoss()
     writer = tensorboardX.SummaryWriter()
-    accumulation_steps = 2
+    accumulation_steps = 16
     steps = 0
     min_valid_loss = 99999
     for e in range(epoch):
@@ -66,7 +66,17 @@ def main(max_len):
                     loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
                     loss = (5*loss1+3*loss2+loss3+loss4) / (time_len // max_len) / accumulation_steps
                     loss.backward()
+                    if (_ + 1) % accumulation_steps == 0:
+                        optimizer.step()
+                        optimizer.zero_grad()
+                        writer_loss = loss * (time_len // max_len) * accumulation_steps
+                        print(f'train_loss: {writer_loss}')
+                        writer.add_scalar("loss", writer_loss, steps)
                 writer_loss = loss * (time_len // max_len) * accumulation_steps
+                optimizer.step()
+                optimizer.zero_grad()
+                print(f'train_loss: {writer_loss}')
+                writer.add_scalar("loss", writer_loss, steps)
             else:
                 p1_vectors = total_p1_vectors
                 p2_vectors = total_p2_vectors
@@ -77,18 +87,12 @@ def main(max_len):
                 loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
                 loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
                 loss = (5*loss1+3*loss2+loss3+loss4) / accumulation_steps
-                memory_usage = max(memory_usage, torch.cuda.memory_allocated())
                 loss.backward()
                 writer_loss = loss * accumulation_steps
-            if (_ + 1) % accumulation_steps == 0:
                 optimizer.step()
                 optimizer.zero_grad()
                 print(f'train_loss: {writer_loss}')
                 writer.add_scalar("loss", writer_loss, steps)
-        optimizer.step()
-        optimizer.zero_grad()
-        print(f'train_loss: {loss * accumulation_steps}')
-        writer.add_scalar("loss", loss * accumulation_steps, steps)
         scheduler.step()
         if e % 10 == 0:
             with torch.no_grad():
