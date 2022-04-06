@@ -44,7 +44,7 @@ def main(max_len):
     scheduler = CosineAnnealingLR(optimizer, T_max=100, eta_min=1e-8)
     loss_func = torch.nn.MSELoss()
     writer = tensorboardX.SummaryWriter()
-    accumulation_steps = 8
+    accumulation_steps = 4
     steps = 0
     min_valid_loss = 99999
     for e in range(epoch):
