@@ -72,11 +72,11 @@ def main(max_len):
                         writer_loss = loss * (time_len // max_len) * accumulation_steps
                         print(f'train_loss: {writer_loss}')
                         writer.add_scalar("loss", writer_loss, steps)
-                writer_loss = loss * (time_len // max_len) * accumulation_steps
+                # writer_loss = loss * (time_len // max_len) * accumulation_steps
                 optimizer.step()
                 optimizer.zero_grad()
-                print(f'train_loss: {writer_loss}')
-                writer.add_scalar("loss", writer_loss, steps)
+                # print(f'train_loss: {writer_loss}')
+                # writer.add_scalar("loss", writer_loss, steps)
             else:
                 p1_vectors = total_p1_vectors
                 p2_vectors = total_p2_vectors
