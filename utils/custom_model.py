@@ -13,7 +13,7 @@ class MyConfig():
         self.dropout_rate = 0.02
         self.max_position_embeddings = 3000
         self.d_ff = 768
-        self.d_kv = 512
+        self.d_kv = 768
         self.num_heads = 16
 
 
