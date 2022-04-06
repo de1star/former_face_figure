@@ -39,7 +39,7 @@ def main(max_len):
     model = MyModel(config, max_len).cuda()
     epoch = 101
     # initialize the optimizer, I used AdamW here.
-    optimizer = AdamW(model.parameters(), lr=1e-6, betas=(0.9, 0.98))
+    optimizer = AdamW(model.parameters(), lr=5e-7, betas=(0.9, 0.98))
     # learning rate scheduler, I did not warm up the model.
     scheduler = CosineAnnealingLR(optimizer, T_max=100, eta_min=1e-8)
     loss_func = torch.nn.MSELoss()
