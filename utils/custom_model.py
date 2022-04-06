@@ -6,15 +6,15 @@ import numpy as np
 # config 1
 class MyConfig():
     def __init__(self):
-        self.num_layers = 12
-        self.d_model = 768
+        self.num_layers = 24
+        self.d_model = 1024
         self.d_probability = 512
         self.layer_norm_ep = 1e-5
         self.dropout_rate = 0.02
-        self.max_position_embeddings = 30000
-        self.d_ff = 768
-        self.d_kv = 768
-        self.num_heads = 12
+        self.max_position_embeddings = 1000
+        self.d_ff = 1024
+        self.d_kv = 1024
+        self.num_heads = 16
 
 
 class Attention(torch.nn.Module):

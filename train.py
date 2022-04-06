@@ -35,8 +35,7 @@ def main(max_len):
     valid_dataset = Dataset_F3('test')
     valid_dataloader = DataLoader(valid_dataset, batch_size=1)
     config = MyConfig()
-    test_max_len = max_len
-    training_data_length = 1600
+    test_max_len = 1600
     model = MyModel(config, max_len).cuda()
     epoch = 101
     # initialize the optimizer, I used AdamW here.
@@ -47,37 +46,34 @@ def main(max_len):
     writer = tensorboardX.SummaryWriter()
     accumulation_steps = 8
     steps = 0
-
+    min_valid_loss = 99999
     memory_usage = 0
     for e in range(epoch):
         print(f"epoch: {e}")
         random.seed(e)
         for _, batch in tqdm(enumerate(dataloader)):
             steps += 1
-            p1_vectors = batch['input'].to(torch.float32).cuda()
-            p2_vectors = batch['output'].to(torch.float32).cuda()
-            if p1_vectors.shape[1] >= training_data_length:
-                start = random.randint(0, p1_vectors.shape[1] - training_data_length)
-                long_p1_vectors = p1_vectors[:, start:start+training_data_length, :]
-                long_p2_vectors = p2_vectors[:, start:start+training_data_length, :]
-                for i in range(training_data_length // max_len):
-                    p1_vectors = long_p1_vectors[:, i*max_len:(i+1)*max_len, :]
-                    p2_vectors = long_p2_vectors[:, i*max_len:(i+1)*max_len, :]
+            total_p1_vectors = batch['input'].to(torch.float32).cuda()
+            total_p2_vectors = batch['output'].to(torch.float32).cuda()
+            time_len = total_p1_vectors.shape[1]
+            if time_len > max_len:
+                for i in range(time_len // max_len):
+                    p1_vectors = total_p1_vectors[:, i*max_len:(i+1)*max_len, :]
+                    p2_vectors = total_p2_vectors[:, i*max_len:(i+1)*max_len, :]
                     output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
                     loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
                     loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
                     loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
                     loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
-                    loss = (5*loss1+3*loss2+loss3+loss4) / (training_data_length // max_len) / accumulation_steps
+                    loss = (5*loss1+3*loss2+loss3+loss4) / (time_len // max_len) / accumulation_steps
                     memory_usage = max(memory_usage, torch.cuda.memory_allocated())
                     loss.backward()
-                writer_loss = loss * (training_data_length // max_len) * accumulation_steps
+                writer_loss = loss * (time_len // max_len) * accumulation_steps
             else:
-                start = random.randint(0, p1_vectors.shape[1] - max_len)
-                long_p1_vectors = p1_vectors[:, start:start + max_len, :]
-                long_p2_vectors = p2_vectors[:, start:start + max_len, :]
+                p1_vectors = total_p1_vectors
+                p2_vectors = total_p2_vectors
                 output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
-                # loss = loss_func(output, p2_vectors)
+                # loss = loss_func(output, total_p2_vectors)
                 loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
                 loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
                 loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
@@ -101,27 +97,28 @@ def main(max_len):
                 valid_dataset_lenth = len(valid_dataset)
                 valid_loss = 0
                 for _, batch in enumerate(valid_dataloader):
-                    p1_vectors = batch['input'].to(torch.float32).cuda()
-                    p2_vectors = batch['output'].to(torch.float32).cuda()
-                    if p1_vectors.shape[1] > test_max_len:
-                        p1_vectors = p1_vectors[:, :test_max_len, :]
-                        p2_vectors = p2_vectors[:, :test_max_len, :]
-                    # output = model.generate(p1_vectors, p2_vectors[:, :1, :])
-                    output = model(p1_vectors=p1_vectors, p2_vectors=p2_vectors)
-                    loss1 = loss_func(output[:, :, :100], p2_vectors[:, :, :100])
-                    loss2 = loss_func(output[:, :, 100:150], p2_vectors[:, :, 100:150])
-                    loss3 = loss_func(output[:, :, 150:153], p2_vectors[:, :, 150:153])
-                    loss4 = loss_func(output[:, :, 156:], p2_vectors[:, :, 156:])
+                    total_p1_vectors = batch['input'].to(torch.float32).cuda()
+                    total_p2_vectors = batch['output'].to(torch.float32).cuda()
+                    if total_p1_vectors.shape[1] > test_max_len:
+                        total_p1_vectors = total_p1_vectors[:, :test_max_len, :]
+                        total_p2_vectors = total_p2_vectors[:, :test_max_len, :]
+                    # output = model.generate(total_p1_vectors, total_p2_vectors[:, :1, :])
+                    output = model(p1_vectors=total_p1_vectors, p2_vectors=total_p2_vectors)
+                    loss1 = loss_func(output[:, :, :100], total_p2_vectors[:, :, :100])
+                    loss2 = loss_func(output[:, :, 100:150], total_p2_vectors[:, :, 100:150])
+                    loss3 = loss_func(output[:, :, 150:153], total_p2_vectors[:, :, 150:153])
+                    loss4 = loss_func(output[:, :, 156:], total_p2_vectors[:, :, 156:])
                     loss = (5 * loss1 + 3 * loss2 + loss3 + loss4)
                     valid_loss += loss / valid_dataset_lenth
                 print(f'valid_loss: {valid_loss}')
                 writer.add_scalar("valid_loss", valid_loss, steps)
-    torch.save(model.state_dict(), os.path.join(model_output, f"f3_model_{time}"))
-    writer.add_scalar("memory_usage", memory_usage / 1.07e9, model.max_len)
+                if valid_loss < min_valid_loss:
+                    min_valid_loss = valid_loss
+                    torch.save(model.state_dict(), os.path.join(model_output, f"{max_len}_f3_model_{time}"))
     writer.close()
 
 
 if __name__ == '__main__':
-    for max_len in [800, 500, 300, 100, 50]:
+    for max_len in [100]:
         main(max_len)
     # main()
