@@ -3,6 +3,10 @@ import torch
 import numpy as np
 import trimesh
 import pyrender
+import pickle
+import os
+import cv2
+import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 import sys
@@ -20,14 +24,22 @@ class Figure_Generator():
         self.camera_pose = utils.create_pose(0, 0, 0,
                                              0, -0.04, 0.35)
 
-    def generate(self, flame_vectors):
-        scene = pyrender.Scene()
-        pyrender.Viewer(scene, use_raymond_lighting=True,
-                        run_in_thread=True,
-                        viewer_flags={  # 'rotate':True,
-                            'show_world_axis': False,
-                            'show_mesh_axes': False}, )
-        for i in range(flame_vectors.shape[0]):
+    def frames_to_video(self, frame_path, prefix):
+        save_dir = f'../demos/videos/{prefix}'
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        imgs = [img for img in os.listdir(frame_path)]
+        fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+        fps = 60
+        video_width, video_height = 1920, 1080
+        videoWriter = cv2.VideoWriter(save_dir, fourcc, fps, (video_width, video_height))
+
+
+    def generate(self, flame_vectors, prefix):
+        save_dir = f'../demos/frames/{prefix}'
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        for i in tqdm(range(flame_vectors.shape[0])):
             tf_shape = flame_vectors[i, :100]
             tf_exp = flame_vectors[i, 100:150]
             tf_rot = flame_vectors[i, 150:156]
@@ -46,14 +58,18 @@ class Figure_Generator():
                                        vertex_colors=vertex_colors)
             mesh = pyrender.Mesh.from_trimesh(tri_mesh)
             # scene.clear()
+            scene = pyrender.Scene()
+            light = pyrender.SpotLight(color=np.ones(3), intensity=0.7,
+                                       innerConeAngle=np.pi / 16.0,
+                                       outerConeAngle=np.pi / 6.0)
             scene.add(mesh)
             scene.add(self.camera, pose=self.camera_pose)
-            sm = trimesh.creation.uv_sphere(radius=0.005)
-            sm.visual.vertex_colors = [0.9, 0.1, 0.1, 1.0]
-            tfs = np.tile(np.eye(4), (len(joints), 1, 1))
-            tfs[:, :3, 3] = joints
-            joints_pcl = pyrender.Mesh.from_trimesh(sm, poses=tfs)
-            # scene.add(joints_pcl)
+            scene.add(light, pose=self.camera_pose)
+            r = pyrender.OffscreenRenderer(200, 200)
+            color, _ = r.render(scene)
+            idx = str(i).rjust(6, '0')
+            plt.imsave(f'{save_dir}/{idx}.jpg', color)
+            r.delete()
 
 
 def test1():
@@ -75,69 +91,12 @@ def test1():
         vectors = np.concatenate((tf_shape, tf_exp, tf_rot, tf_pose[:, :3], tf_pose[:, 3:9]), axis=1)
         generator.generate(vectors)
 
-
 def test2():
-    data_path = '../data/mhi_mimicry.hdf5'
-    data_types = ['tf_exp', 'tf_pose', 'tf_shape', 'tf_rot', 'tf_trans']
-    config = get_config()
-    flamelayer = FLAME(config)
-    with h5py.File(data_path, 'r') as f:
-        frame = 500
-        for sessions_idx, sessions_info in tqdm(f['sessions'].items()):
-            if sessions_idx != '1':
-                continue
-            cur_video_len = sessions_info['participants/P2/tf_pose'].shape[0]
-            p1_params_dict = {}
-            p2_params_dict = {}
-            for data_type in data_types:
-                p1_params_dict[data_type] = sessions_info['participants/P1/' + data_type]
-                p2_params_dict[data_type] = sessions_info['participants/P2/' + data_type]
-            print(cur_video_len)
-            print(p1_params_dict)
-            print(p2_params_dict)
-            break
-        tf_shape = p1_params_dict['tf_shape'][frame][:100]
-        tf_exp = p1_params_dict['tf_exp'][frame][:50]
-        tf_pose = p1_params_dict['tf_pose'][frame]
-        tf_rot = np.concatenate((p1_params_dict['tf_rot'][frame], np.zeros(3)))#, p1_params_dict['tf_rot'][0]))
-        vertice, landmark = flamelayer(shape_params=torch.from_numpy(tf_shape).float().unsqueeze(0),
-                                       expression_params=torch.from_numpy(tf_exp).float().unsqueeze(0),
-                                       pose_params=torch.from_numpy(tf_rot).float().unsqueeze(0),
-                                       neck_pose=torch.from_numpy(tf_pose[0:3]).float().unsqueeze(0),
-                                       eye_pose=torch.from_numpy(tf_pose[3:9]).float().unsqueeze(0))
-        print(vertice.size(), landmark.size())
-        faces = flamelayer.faces
-        vertices = vertice[0].detach().cpu().numpy().squeeze()
-        joints = landmark[0].detach().cpu().numpy().squeeze()
-        vertex_colors = np.ones([vertices.shape[0], 4]) * [0.3, 0.3, 0.3, 0.8]
-
-        tri_mesh = trimesh.Trimesh(vertices, faces,
-                                   vertex_colors=vertex_colors)
-        mesh = pyrender.Mesh.from_trimesh(tri_mesh)
-        scene = pyrender.Scene()
-        camera = pyrender.PerspectiveCamera(yfov=np.pi / 2.0, aspectRatio=1.0)
-        camera_pose = utils.create_pose(0, 0, 0,
-                                        0, -0.04, 0.35)
-        scene.add(mesh)
-        scene.add(camera, pose=camera_pose)
-        sm = trimesh.creation.uv_sphere(radius=0.005)
-        sm.visual.vertex_colors = [0.9, 0.1, 0.1, 1.0]
-        tfs = np.tile(np.eye(4), (len(joints), 1, 1))
-        tfs[:, :3, 3] = joints
-        joints_pcl = pyrender.Mesh.from_trimesh(sm, poses=tfs)
-        #scene.add(joints_pcl)
-        pyrender.Viewer(scene, use_raymond_lighting=True,
-                        run_in_thread=False,
-                        viewer_flags={#'rotate':True,
-                                      'show_world_axis': False,
-                                      'show_mesh_axes': False},)
-        scene.clear()
-        pyrender.Viewer(scene, use_raymond_lighting=True,
-                        run_in_thread=False,
-                        viewer_flags={  # 'rotate':True,
-                            'show_world_axis': False,
-                            'show_mesh_axes': False}, )
+    generator = Figure_Generator()
+    with open('../data/valid/3.pkl', 'rb') as f:
+        data = pickle.load(f)
+    generator.generate(data['input'], 3)
 
 
 if __name__ == '__main__':
-    test1()
+    test2()
