@@ -10,21 +10,6 @@ import tensorboardX
 import random
 
 
-def test():
-    self_attention = torch.rand((8, 8))
-    cross_attention = torch.rand((8, 8))
-    cross_attention = torch.tril(cross_attention)
-    masks = torch.ones(cross_attention.size()).detach() * -99999
-    masks = torch.triu(masks, diagonal=1)
-    # self_attention += masks
-    softmax_self_attention = torch.nn.functional.softmax(self_attention, dim=-1)
-    self_attention = np.array(self_attention)
-    softmax_self_attention = np.array(softmax_self_attention)
-    cross_attention = np.array(cross_attention)
-    masks = np.array(masks)
-    pass
-
-
 def main(max_len):
     time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     model_output = 'mymodel'
