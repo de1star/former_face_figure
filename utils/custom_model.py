@@ -67,7 +67,8 @@ class Attention(torch.nn.Module):
         scores = torch.matmul(query_states, key_states.transpose(3, 2))
         # if self.is_decoder:
         #     scores = torch.tril(scores, diagonal=0)
-        masks = torch.ones(scores.size()).cuda().detach() * -99999
+        # masks = torch.ones(scores.size()).cuda().detach() * -99999
+        masks = torch.ones(scores.size()).cpu().detach() * -99999
         masks = torch.triu(masks, diagonal=1)
         scores += masks
         attn_weights = torch.nn.functional.softmax(scores.float(), dim=-1).type_as(scores)
@@ -216,7 +217,7 @@ class MyModel(torch.nn.Module):
         seq_len = p1_vectors.shape[1]
         p1_vectors = self.fc1(p1_vectors)#.to(torch.float32))
         p2_vectors = self.fc1(p2_vectors)#.to(torch.float32))
-        position_ids = torch.tensor([i for i in range(seq_len)]).to(torch.int).cuda()
+        position_ids = torch.tensor([i for i in range(seq_len)]).to(torch.int).cpu()#.cuda()
         position_embeddings = self.position_encoder(position_ids).unsqueeze(0)
         p1_vectors += position_embeddings
         p2_vectors += position_embeddings

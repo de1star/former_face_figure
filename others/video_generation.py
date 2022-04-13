@@ -91,12 +91,12 @@ def flame_generation(result, config, pair_idx=None):
 
 
 def save_video(video_name, config, fps, output_path, pair=False):
-    images = [img for img in os.listdir(config.temp_folder) if not img.endswith(".2.jpg")]
+    images = [img for img in os.listdir(config.temp_folder) if not img.endswith(".1.jpg")]
     images.sort(key=lambda name: int(name.split(".")[0]))
     frame = cv2.imread(os.path.join(config.temp_folder, images[0]))
     height, width, layers = frame.shape
     if pair:
-        images2 = [img for img in os.listdir(config.temp_folder) if img.endswith(".2.jpg")]
+        images2 = [img for img in os.listdir(config.temp_folder) if img.endswith(".1.jpg")]
         images2.sort(key=lambda name: int(name.split(".")[0]))
         width *= 2
 

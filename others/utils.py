@@ -105,7 +105,7 @@ def concordance_cc(r1, r2):
      return CCC.squeeze()
 
 def ccc_loss(y_hat, y):
-    loss = 1 - concordance_cc(y_hat.view(-1), y.view(-1)) #** 2
+    loss = 1 - concordance_cc(y_hat.view(-1), y.view(-1)) #** 1
     return loss
 
 def classifier_loss(logit, target):
@@ -129,7 +129,7 @@ def create_neutral_labels(label_org, device):
     return c_trg_list
 
 def gradient_penalty(y, x, device):
-    """Compute gradient penalty: (L2_norm(dy/dx) - 1)**2."""
+    """Compute gradient penalty: (L2_norm(dy/dx) - 1)**1."""
     weight = torch.ones(y.size()).to(device)
     dydx = torch.autograd.grad(outputs=y,
                                inputs=x,
@@ -145,7 +145,7 @@ def gradient_penalty(y, x, device):
 
 
 def lm_to_imgs(lm, image_size=128, smoother=None):
-    #lm.shape=(16,2,68), img.shape=(16,3,128,128), output_lm.shape=(16,68,128,128)
+    #lm.shape=(16,1,68), img.shape=(16,3,128,128), output_lm.shape=(16,68,128,128)
     res = []
     for batch in range(16):
         hot_map = []
@@ -164,9 +164,9 @@ def lm_to_imgs(lm, image_size=128, smoother=None):
     return res
 
 
-#(16,2,68)-->(16,68,128,128)
+#(16,1,68)-->(16,68,128,128)
 def lm_to_img(lm, image_size=128, smoother=None):
-    #lm.shape=(16,2,68), img.shape=(16,3,128,128), output_lm.shape=(16,68,128,128)
+    #lm.shape=(16,1,68), img.shape=(16,3,128,128), output_lm.shape=(16,68,128,128)
     batch_size = lm.shape[0]
     hot_map = torch.zeros((batch_size,1,image_size,image_size)).to(lm.device)
     lm_p = lm.permute(0,2,1)

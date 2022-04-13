@@ -7,7 +7,7 @@ def compute_kl_loss(mu, logvar):
 
 
 # def compute_rc_loss(y, output):
-#     feature_size = y.shape[2]
+#     feature_size = y.shape[1]
 #     gt = y.reshape(-1,feature_size)
 #     out = output.reshape(-1,feature_size)
 #
